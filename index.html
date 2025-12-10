@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renters' Rights Act Quiz</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- React and ReactDOM -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<!-- Babel for JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Fonts -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+body { font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body class="bg-slate-100">
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+// --- Icon Components (Inline SVGs to remove dependency on external icon libraries) ---
+const CheckCircle = ({ className }) => (
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+);
+
+const XCircle = ({ className }) => (
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+);
+
+const Trophy = ({ className }) => (
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17"></path><path d="M14 14.66V17"></path><path d="M12 2v1"></path><path d="M12 22v-5"></path><path d="M8 2h8a2 2 0 0 1 2 2v3a6 6 0 0 1-6 6h0a6 6 0 0 1-6-6V4a2 2 0 0 1 2-2z"></path></svg>
+);
+
+const BookOpen = ({ className }) => (
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+);
+
+const AlertCircle = ({ className }) => (
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+);
+
+const ArrowRight = ({ className }) => (
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+);
+
+const RotateCcw = ({ className }) => (
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+);
+
+const Home = ({ className }) => (
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+);
+
+// --- Main Application Component ---
+
+const RentersRightsQuiz = () => {
+const [gameState, setGameState] = useState('start'); // start, playing, finished
+const [currentQuestion, setCurrentQuestion] = useState(0);
+const [score, setScore] = useState(0);
+const [hasAnswered, setHasAnswered] = useState(false);
+const [isCorrect, setIsCorrect] = useState(false);
+
+const questions = [
+{
+statement: "Landlords can no longer regain possession to sell their property.",
+isFact: false,
+explanation: "The Act removes Section 21 but includes a mandatory possession ground for sale under the revised Section 8, so landlords can still regain possession to sell."
+},
+{
+statement: "Section 21 eviction notices are still valid.",
+isFact: false,
+explanation: "Section 21 (no-fault notices) is being abolished; possession rights are now pursued under an expanded Section 8 regime."
+},
+{
+statement: "Landlords can increase the rent any time they like.",
+isFact: false,
+explanation: "Rent increases are limited — landlords may increase rent once per year using the statutory Section 13 mechanism; tenants may challenge uplifts at Tribunal."
+},
+{
+statement: "Open-ended tenancies mean tenants can leave instantly with no notice.",
+isFact: false,
+explanation: "Open-ended tenancies are introduced, but tenants must give two months’ notice to terminate, not leave immediately."
+},
+{
+statement: "The Act is designed to target rogue landlords and strengthens professional landlords’ position.",
+isFact: true,
+explanation: "The Act aims to root out poor practice and low-quality providers; well-managed, professional landlords and high-quality homes are favoured."
+},
+{
+statement: "If a tenant disputes a rent rise, the dispute will automatically clog the courts for years.",
+isFact: false,
+explanation: "The Act establishes Tribunal processes and invests in digital possession/rent-challenge systems plus a PRS Landlord Ombudsman to speed and simplify dispute resolution."
+},
+{
+statement: "Overseas landlords are automatically disadvantaged by the Act.",
+isFact: false,
+explanation: "The Act gives a clearer framework that overseas investors can build compliance around from day one, avoiding legacy tenancy issues and benefiting from predictability."
+},
+{
+statement: "Landlords can get possession immediately for any unpaid rent.",
+isFact: false,
+explanation: "Rent-arrears possession is discretionary — the Act permits court action for possession where a tenant owes three months’ rent or persistently delays payment."
+},
+{
+statement: "Landlords can lawfully review rents once per year, but tenants can challenge any uplift through a government Tribunal.",
+isFact: true,
+explanation: "Annual rent reviews via Section 13 are permitted; tenants can dispute uplifts at Tribunal, which decides the effective date."
+},
+{
+statement: "The new PRS infrastructure (Ombudsman, PRS database, digital court tools) will raise costs and slow down dispute resolution for landlords.",
+isFact: false,
+explanation: "The infrastructure is intended to reduce friction and legal costs by enabling quicker, lower-cost dispute resolution and better differentiation of compliant landlords."
+}
+];
+
+const handleAnswer = (userChoseFact) => {
+if (hasAnswered) return;
+
+const correct = userChoseFact === questions[currentQuestion].isFact;
+setIsCorrect(correct);
+if (correct) {
+setScore(score + 1);
+}
+setHasAnswered(true);
+};
+
+const nextQuestion = () => {
+if (currentQuestion < questions.length - 1) {
+setCurrentQuestion(currentQuestion + 1);
+setHasAnswered(false);
+setIsCorrect(false);
+} else {
+setGameState('finished');
+}
+};
+
+const restartGame = () => {
+setGameState('start');
+setCurrentQuestion(0);
+setScore(0);
+setHasAnswered(false);
+setIsCorrect(false);
+};
+
+// Render Start Screen
+if (gameState === 'start') {
+return (
+<div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-800">
+<div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+<div className="bg-indigo-600 p-8 text-center">
+<Home className="w-16 h-16 text-white mx-auto mb-4" />
+<h1 className="text-3xl font-bold text-white mb-2">Renters’ Rights Act</h1>
+<p className="text-indigo-100 font-medium">Myth or Fact Challenge</p>
+</div>
+<div className="p-8">
+<h2 className="text-xl font-bold mb-4 text-slate-800">How to play:</h2>
+<ul className="space-y-3 mb-8 text-slate-600">
+<li className="flex items-start">
+<span className="bg-indigo-100 text-indigo-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5 text-sm font-bold">1</span>
+Read each statement carefully.
+</li>
+<li className="flex items-start">
+<span className="bg-indigo-100 text-indigo-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5 text-sm font-bold">2</span>
+Decide if it is a <strong className="mx-1 text-orange-500">Myth</strong> or a <strong className="mx-1 text-emerald-600">Fact</strong>.
+</li>
+<li className="flex items-start">
+<span className="bg-indigo-100 text-indigo-600 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0 mt-0.5 text-sm font-bold">3</span>
+Learn from the explanation and track your score!
+</li>
+</ul>
+<button
+onClick={() => setGameState('playing')}
+className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] flex items-center justify-center shadow-lg"
+>
+Start Quiz <ArrowRight className="ml-2 w-5 h-5" />
+</button>
+</div>
+</div>
+</div>
+);
+}
+
+// Render Result Screen
+if (gameState === 'finished') {
+let resultTier = { title: "", message: "", color: "" };
+if (score >= 8) {
+resultTier = {
+title: "Expert Landlord / Agent",
+message: "Amazing work! Offer yourself a shout-out and a well-deserved coffee break.",
+color: "text-amber-500",
+bg: "bg-amber-50",
+icon: <Trophy className="w-16 h-16 text-amber-500 mb-4" />
+};
+} else if (score >= 5) {
+resultTier = {
+title: "Well Informed",
+message: "Good job. You have a solid grasp, but checking a one-pager on the Act wouldn't hurt.",
+color: "text-blue-500",
+bg: "bg-blue-50",
+icon: <BookOpen className="w-16 h-16 text-blue-500 mb-4" />
+};
+} else {
+resultTier = {
+title: "Starter Pack",
+message: "Time for a refresher session! We recommend reviewing the compliance checklist.",
+color: "text-slate-500",
+bg: "bg-slate-100",
+icon: <AlertCircle className="w-16 h-16 text-slate-500 mb-4" />
+};
+}
+
+return (
+<div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+<div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden text-center p-8">
+<div className={`rounded-full w-32 h-32 ${resultTier.bg} mx-auto flex items-center justify-center mb-6`}>
+{resultTier.icon}
+</div>
+<h2 className="text-sm uppercase tracking-wide text-slate-400 font-bold mb-2">Final Score</h2>
+<div className="text-5xl font-black text-slate-800 mb-6">{score} / {questions.length}</div>
+<h3 className={`text-2xl font-bold mb-2 ${resultTier.color}`}>{resultTier.title}</h3>
+<p className="text-slate-600 mb-8 px-4">{resultTier.message}</p>
+<button
+onClick={restartGame}
+className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center"
+>
+<RotateCcw className="mr-2 w-5 h-5" /> Play Again
+</button>
+</div>
+</div>
+);
+}
+
+// Render Gameplay Screen
+return (
+<div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4 font-sans">
+<div className="max-w-lg w-full">
+{/* Progress Header */}
+<div className="flex justify-between items-center mb-4 text-slate-600 font-medium text-sm">
+<span>Question {currentQuestion + 1} of {questions.length}</span>
+<span>Score: {score}</span>
+</div>
+{/* Progress Bar */}
+<div className="w-full bg-slate-200 rounded-full h-2 mb-6">
+<div
+className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+></div>
+</div>
+
+{/* Question Card */}
+<div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+<div className="p-8">
+<h3 className="text-xl md:text-2xl font-bold text-slate-800 leading-snug mb-8 text-center">
+"{questions[currentQuestion].statement}"
+</h3>
+
+{!hasAnswered ? (
+<div className="grid grid-cols-2 gap-4">
+<button
+onClick={() => handleAnswer(false)}
+className="bg-orange-100 hover:bg-orange-200 border-2 border-orange-200 text-orange-700 font-bold py-6 rounded-xl transition-colors text-lg flex flex-col items-center justify-center"
+>
+<XCircle className="w-8 h-8 mb-2" />
+MYTH
+</button>
+<button
+onClick={() => handleAnswer(true)}
+className="bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-200 text-emerald-700 font-bold py-6 rounded-xl transition-colors text-lg flex flex-col items-center justify-center"
+>
+<CheckCircle className="w-8 h-8 mb-2" />
+FACT
+</button>
+</div>
+) : (
+<div className="animate-in fade-in zoom-in duration-300">
+<div className={`p-4 rounded-xl mb-6 flex items-center ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+{isCorrect ? <CheckCircle className="w-6 h-6 mr-3 flex-shrink-0" /> : <XCircle className="w-6 h-6 mr-3 flex-shrink-0" />}
+<span className="font-bold text-lg">
+{isCorrect ? "Correct!" : "Incorrect."}
+</span>
+<span className="ml-auto font-medium text-sm uppercase tracking-wider bg-white bg-opacity-50 px-3 py-1 rounded-lg">
+It's a {questions[currentQuestion].isFact ? 'Fact' : 'Myth'}
+</span>
+</div>
+
+<div className="bg-slate-50 border-l-4 border-indigo-500 p-5 mb-6 text-slate-700">
+<h4 className="font-bold text-indigo-900 mb-1 text-sm uppercase">Why?</h4>
+<p>{questions[currentQuestion].explanation}</p>
+</div>
+
+<button
+onClick={nextQuestion}
+className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center"
+>
+{currentQuestion < questions.length - 1 ? "Next Question" : "See Results"} <ArrowRight className="ml-2 w-5 h-5" />
+</button>
+</div>
+)}
+</div>
+</div>
+</div>
+</div>
+);
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<RentersRightsQuiz />);
+</script>
+</body>
+</html>
